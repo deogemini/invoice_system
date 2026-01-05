@@ -23,6 +23,7 @@
                         <th class="py-3 px-6 text-left">Date</th>
                         <th class="py-3 px-6 text-left">Customer</th>
                         <th class="py-3 px-6 text-left">Reference</th>
+                        <th class="py-3 px-6 text-center">Status</th>
                         <th class="py-3 px-6 text-right">Total</th>
                         <th class="py-3 px-6 text-center">Actions</th>
                     </tr>
@@ -33,6 +34,11 @@
                         <td class="py-3 px-6 text-left">{{ invoice.date }}</td>
                         <td class="py-3 px-6 text-left">{{ invoice.customer ? invoice.customer.name : 'Unknown' }}</td>
                         <td class="py-3 px-6 text-left">{{ invoice.reference || '-' }}</td>
+                        <td class="py-3 px-6 text-center">
+                            <span :class="{'bg-green-200 text-green-600': invoice.status === 'paid', 'bg-red-200 text-red-600': invoice.status === 'unpaid'}" class="py-1 px-3 rounded-full text-xs font-bold cursor-pointer" @click="toggleStatus(invoice)">
+                                {{ invoice.status ? invoice.status.toUpperCase() : 'UNPAID' }}
+                            </span>
+                        </td>
                         <td class="py-3 px-6 text-right font-bold">{{ Number(invoice.total).toFixed(2) }}</td>
                         <td class="py-3 px-6 text-center">
                             <div class="flex item-center justify-center space-x-2">
@@ -50,7 +56,7 @@
                         </td>
                     </tr>
                     <tr v-if="invoices.length === 0">
-                        <td colspan="6" class="py-3 px-6 text-center">No invoices found.</td>
+                        <td colspan="7" class="py-3 px-6 text-center">No invoices found.</td>
                     </tr>
                 </tbody>
             </table>
@@ -88,6 +94,17 @@ const deleteInvoice = async (id) => {
         invoices.value = invoices.value.filter(i => i.id !== id);
     } catch (err) {
         alert('Failed to delete invoice.');
+        console.error(err);
+    }
+};
+
+const toggleStatus = async (invoice) => {
+    const newStatus = invoice.status === 'paid' ? 'unpaid' : 'paid';
+    try {
+        await axios.put(`/api/invoices/${invoice.id}`, { status: newStatus });
+        invoice.status = newStatus;
+    } catch (err) {
+        alert('Failed to update status.');
         console.error(err);
     }
 };

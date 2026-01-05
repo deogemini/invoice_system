@@ -103,6 +103,20 @@ class InvoiceController extends Controller
         ]);
     }
 
+    public function update(Request $request, $id)
+    {
+        $invoice = Invoice::findOrFail($id);
+
+        $request->validate([
+            'status' => 'required|in:paid,unpaid'
+        ]);
+
+        $invoice->status = $request->status;
+        $invoice->save();
+
+        return response()->json(['message' => 'Invoice status updated successfully']);
+    }
+
     /**
      * Remove the specified resource from storage.
      */

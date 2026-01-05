@@ -37,6 +37,7 @@
                         <td class="py-3 px-6 text-left">{{ customer.tin || '-' }}</td>
                         <td class="py-3 px-6 text-left">{{ customer.phone || '-' }}</td>
                         <td class="py-3 px-6 text-left">{{ customer.address || '-' }}</td>
+                        <td class="py-3 px-6 text-left">{{ customer.p_o_box || '-' }}</td>
                         <td class="py-3 px-6 text-center">
                             <div class="flex item-center justify-center">
                                 <router-link :to="{ name: 'customers.edit', params: { id: customer.id } }" class="w-4 mr-2 transform hover:text-purple-500 hover:scale-110">
@@ -53,7 +54,7 @@
                         </td>
                     </tr>
                     <tr v-if="customers.length === 0">
-                        <td colspan="7" class="py-3 px-6 text-center">No customers found.</td>
+                        <td colspan="8" class="py-3 px-6 text-center">No customers found.</td>
                     </tr>
                 </tbody>
             </table>
