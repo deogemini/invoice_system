@@ -108,13 +108,21 @@ class InvoiceController extends Controller
         $invoice = Invoice::findOrFail($id);
 
         $request->validate([
-            'status' => 'required|in:paid,unpaid'
+            'status' => 'sometimes|in:paid,unpaid',
+            'tra_status' => 'sometimes|in:generated,not_generated'
         ]);
 
-        $invoice->status = $request->status;
+        if ($request->has('status')) {
+            $invoice->status = $request->status;
+        }
+
+        if ($request->has('tra_status')) {
+            $invoice->tra_status = $request->tra_status;
+        }
+
         $invoice->save();
 
-        return response()->json(['message' => 'Invoice status updated successfully']);
+        return response()->json(['message' => 'Invoice updated successfully']);
     }
 
     /**

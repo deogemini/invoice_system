@@ -18,6 +18,7 @@ class Invoice extends Model
         'discount',
         'total',
         'status',
+        'tra_status',
         'reference',
         'terms_and_conditions'
     ];

@@ -24,6 +24,7 @@
                         <th class="py-3 px-6 text-left">Customer</th>
                         <th class="py-3 px-6 text-left">Reference</th>
                         <th class="py-3 px-6 text-center">Status</th>
+                        <th class="py-3 px-6 text-center">TRA Status</th>
                         <th class="py-3 px-6 text-right">Total</th>
                         <th class="py-3 px-6 text-center">Actions</th>
                     </tr>
@@ -37,6 +38,11 @@
                         <td class="py-3 px-6 text-center">
                             <span :class="{'bg-green-200 text-green-600': invoice.status === 'paid', 'bg-red-200 text-red-600': invoice.status === 'unpaid'}" class="py-1 px-3 rounded-full text-xs font-bold cursor-pointer" @click="toggleStatus(invoice)">
                                 {{ invoice.status ? invoice.status.toUpperCase() : 'UNPAID' }}
+                            </span>
+                        </td>
+                        <td class="py-3 px-6 text-center">
+                            <span :class="{'bg-blue-200 text-blue-600': invoice.tra_status === 'generated', 'bg-gray-200 text-gray-600': invoice.tra_status !== 'generated'}" class="py-1 px-3 rounded-full text-xs font-bold cursor-pointer" @click="toggleTraStatus(invoice)">
+                                {{ invoice.tra_status === 'generated' ? 'GENERATED' : 'NOT GEN' }}
                             </span>
                         </td>
                         <td class="py-3 px-6 text-right font-bold">{{ Number(invoice.total).toFixed(2) }}</td>
@@ -56,7 +62,7 @@
                         </td>
                     </tr>
                     <tr v-if="invoices.length === 0">
-                        <td colspan="7" class="py-3 px-6 text-center">No invoices found.</td>
+                        <td colspan="8" class="py-3 px-6 text-center">No invoices found.</td>
                     </tr>
                 </tbody>
             </table>
@@ -105,6 +111,17 @@ const toggleStatus = async (invoice) => {
         invoice.status = newStatus;
     } catch (err) {
         alert('Failed to update status.');
+        console.error(err);
+    }
+};
+
+const toggleTraStatus = async (invoice) => {
+    const newStatus = invoice.tra_status === 'generated' ? 'not_generated' : 'generated';
+    try {
+        await axios.put(`/api/invoices/${invoice.id}`, { tra_status: newStatus });
+        invoice.tra_status = newStatus;
+    } catch (err) {
+        alert('Failed to update TRA status.');
         console.error(err);
     }
 };
