@@ -38,6 +38,7 @@
             <div class="p-8">
                 <p class="text-gray-500 text-sm uppercase tracking-wider mb-2">BILL TO</p>
                 <h3 class="text-xl font-bold text-gray-800 mb-1 uppercase">{{ invoice.customer.name }}</h3>
+                <p class="text-gray-600 mb-1" v-if="invoice.customer.tin">TIN: {{ invoice.customer.tin }}</p>
                 <p class="text-gray-600 mb-1" v-if="invoice.customer.p_o_box">{{ invoice.customer.p_o_box }}</p>
                 <p class="text-gray-600 mb-1" v-if="invoice.customer.address">{{ invoice.customer.address }}</p>
                 <p class="text-blue-600 underline text-sm" v-if="invoice.customer.email">{{ invoice.customer.email }}</p>
