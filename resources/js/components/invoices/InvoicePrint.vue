@@ -8,29 +8,29 @@
     <div v-else class="bg-gray-100 min-h-screen p-8 print:p-0 print:bg-white">
         <div class="max-w-4xl mx-auto bg-white shadow-lg rounded-lg overflow-hidden print:shadow-none print:max-w-full print:rounded-none">
             <!-- Header -->
-            <div class="flex justify-between items-start p-8 border-b border-gray-200 print:p-4">
+            <div class="flex justify-between items-start p-8 border-b border-gray-200 print:p-2">
                 <!-- Left: Logo -->
                 <div class="w-1/4">
-                    <img v-if="settings.logo_path" :src="`/storage/${settings.logo_path}`" alt="Company Logo" class="w-full object-contain max-h-32 print:max-h-24">
-                    <h1 v-else class="text-4xl font-bold text-blue-800 print:text-2xl">LOGO</h1>
+                    <img v-if="settings.logo_path" :src="`/storage/${settings.logo_path}`" alt="Company Logo" class="w-full object-contain max-h-32 print:max-h-16">
+                    <h1 v-else class="text-4xl font-bold text-blue-800 print:text-xl">LOGO</h1>
                 </div>
 
                 <!-- Center: Company Details -->
                 <div class="w-1/2 text-center px-4">
-                    <h2 class="text-2xl font-bold text-gray-800 uppercase tracking-wide mb-2 print:text-xl print:mb-1">{{ settings.company_name }}</h2>
-                    <p class="text-gray-600 text-sm mb-1 print:text-xs" v-if="settings.tin_number">TIN Number {{ settings.tin_number }}</p>
-                    <p class="text-gray-600 text-sm mb-1 print:text-xs" v-if="settings.p_o_box">{{ settings.p_o_box }}</p>
-                    <p class="text-gray-600 text-sm mb-1 print:text-xs" v-if="settings.address">{{ settings.address }}</p>
-                    <p class="text-gray-600 text-sm mb-1 print:text-xs" v-if="settings.phone">{{ settings.phone }}</p>
-                    <a v-if="settings.email" :href="`mailto:${settings.email}`" class="text-blue-600 text-sm underline print:text-xs">{{ settings.email }}</a>
+                    <h2 class="text-2xl font-bold text-gray-800 uppercase tracking-wide mb-2 print:text-lg print:mb-0">{{ settings.company_name }}</h2>
+                    <p class="text-gray-600 text-sm mb-1 print:text-[10px] print:leading-tight" v-if="settings.tin_number">TIN Number {{ settings.tin_number }}</p>
+                    <p class="text-gray-600 text-sm mb-1 print:text-[10px] print:leading-tight" v-if="settings.p_o_box">{{ settings.p_o_box }}</p>
+                    <p class="text-gray-600 text-sm mb-1 print:text-[10px] print:leading-tight" v-if="settings.address">{{ settings.address }}</p>
+                    <p class="text-gray-600 text-sm mb-1 print:text-[10px] print:leading-tight" v-if="settings.phone">{{ settings.phone }}</p>
+                    <a v-if="settings.email" :href="`mailto:${settings.email}`" class="text-blue-600 text-sm underline print:text-[10px] print:leading-tight">{{ settings.email }}</a>
                 </div>
 
                 <!-- Right: Invoice Info -->
                 <div class="w-1/4 text-right">
-                    <h3 class="text-3xl font-light text-gray-400 mb-4 print:text-2xl print:mb-2">INVOICE</h3>
-                    <p class="text-gray-600 font-bold mb-1 print:text-sm">INV# {{ invoice.number || invoice.id }}</p>
-                    <p class="text-gray-500 text-sm print:text-xs">DATE</p>
-                    <p class="text-gray-800 font-semibold print:text-sm">{{ formatDate(invoice.date) }}</p>
+                    <h3 class="text-3xl font-light text-gray-400 mb-4 print:text-xl print:mb-1">INVOICE</h3>
+                    <p class="text-gray-600 font-bold mb-1 print:text-xs">INV# {{ invoice.number || invoice.id }}</p>
+                    <p class="text-gray-500 text-sm print:text-[10px]">DATE</p>
+                    <p class="text-gray-800 font-semibold print:text-xs">{{ formatDate(invoice.date) }}</p>
                 </div>
             </div>
 
@@ -103,7 +103,7 @@
                     <!-- Stamp -->
                     <div class="w-1/2 flex justify-end">
                         <div v-if="settings.stamp_path" class="border-2 border-blue-900 p-2 rounded transform rotate-[-2deg] opacity-80 print:border-none print:p-0">
-                             <img :src="`/storage/${settings.stamp_path}`" alt="Company Stamp" class="h-32 object-contain print:h-24">
+                             <img :src="`/storage/${settings.stamp_path}`" alt="Company Stamp" class="h-32 object-contain print:h-20">
                         </div>
                     </div>
                 </div>
