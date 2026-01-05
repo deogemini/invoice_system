@@ -109,6 +109,12 @@
                 </div>
             </div>
 
+            <!-- System Footer -->
+            <div class="text-center text-xs text-gray-400 pb-8 mt-8">
+                <p>System Developed by EPORT SOLUTIONS LIMITED &copy; 2026</p>
+                <p>Version 1</p>
+            </div>
+
             <!-- Print Button (Hidden when printing) -->
             <div class="p-8 border-t border-gray-200 text-center print:hidden">
                 <button @click="printInvoice" class="bg-blue-600 hover:bg-blue-800 text-white font-bold py-3 px-8 rounded-full shadow-lg transition duration-300 flex items-center justify-center mx-auto">
