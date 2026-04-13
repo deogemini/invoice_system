@@ -67,13 +67,24 @@
                         <tbody>
                             <tr v-for="(item, index) in form.items" :key="index">
                                 <td class="py-2 px-4 border-b">
-                                    <select v-model="item.product_id" @change="onProductChange(item)" required
-                                        class="shadow border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                                        <option value="" disabled>Select Product</option>
-                                        <option v-for="product in products" :key="product.id" :value="product.id">
-                                            {{ product.item_code }} - {{ product.description }}
-                                        </option>
-                                    </select>
+                                    <div v-if="!item.product_id">
+                                        <select v-model="item.product_id" @change="onProductChange(item)" required
+                                            class="shadow border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                            <option value="" disabled>Select Product</option>
+                                            <option v-for="product in products" :key="product.id" :value="product.id">
+                                                {{ product.item_code }} - {{ product.description }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div v-else>
+                                        <textarea v-model="item.description" rows="2"
+                                            class="shadow border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-sm"
+                                            placeholder="Edit description..."></textarea>
+                                        <button @click.prevent="item.product_id = ''; item.description = ''" 
+                                             class="text-xs text-blue-500 hover:text-blue-700">
+                                             Change Product
+                                         </button>
+                                    </div>
                                 </td>
                                 <td class="py-2 px-4 border-b text-right">
                                     <input v-model.number="item.unit_price" type="number" step="0.01" min="0" required
@@ -164,7 +175,7 @@ const form = ref({
     discount: 0,
     terms_and_conditions: '',
     items: [
-        { product_id: '', unit_price: 0, quantity: 1 }
+        { product_id: '', description: '', unit_price: 0, quantity: 1 }
     ]
 });
 
@@ -189,12 +200,13 @@ const fetchProducts = async () => {
 const onProductChange = (item) => {
     const product = products.value.find(p => p.id === item.product_id);
     if (product) {
+        item.description = `${product.item_code} - ${product.description}`;
         item.unit_price = product.unit_price;
     }
 };
 
 const addItem = () => {
-    form.value.items.push({ product_id: '', unit_price: 0, quantity: 1 });
+    form.value.items.push({ product_id: '', description: '', unit_price: 0, quantity: 1 });
 };
 
 const removeItem = (index) => {

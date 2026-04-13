@@ -59,7 +59,7 @@
                     <tbody>
                         <tr v-for="(item, index) in invoice.items" :key="item.id">
                             <td class="border border-black px-4 py-2 print:px-2 print:py-1">{{ index + 1 }}</td>
-                            <td class="border border-black px-4 py-2 print:px-2 print:py-1">{{ item.product.description }}</td>
+                            <td class="border border-black px-4 py-2 print:px-2 print:py-1">{{ item.description || item.product.description }}</td>
                             <td class="border border-black px-4 py-2 print:px-2 print:py-1">{{ formatCurrency(item.unit_price) }}</td>
                             <td class="border border-black px-4 py-2 print:px-2 print:py-1">{{ item.quantity }}</td>
                             <td class="border border-black px-4 py-2 print:px-2 print:py-1">{{ formatCurrency(item.unit_price * item.quantity) }}</td>

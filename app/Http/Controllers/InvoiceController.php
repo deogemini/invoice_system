@@ -34,6 +34,7 @@ class InvoiceController extends Controller
             'terms_and_conditions' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
+            'items.*.description' => 'nullable|string',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.quantity' => 'required|integer|min:1',
         ]);
@@ -49,6 +50,7 @@ class InvoiceController extends Controller
                 $sub_total += $line_total;
                 $items_data[] = [
                     'product_id' => $item['product_id'],
+                    'description' => $item['description'] ?? null,
                     'unit_price' => $item['unit_price'],
                     'quantity' => $item['quantity'],
                 ];
