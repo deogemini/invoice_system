@@ -58,6 +58,7 @@
                         <thead>
                             <tr>
                                 <th class="py-2 px-4 border-b text-left">Product</th>
+                                <th class="py-2 px-4 border-b text-left">Details</th>
                                 <th class="py-2 px-4 border-b text-right w-24">Price</th>
                                 <th class="py-2 px-4 border-b text-center w-24">Qty</th>
                                 <th class="py-2 px-4 border-b text-right w-32">Total</th>
@@ -67,24 +68,18 @@
                         <tbody>
                             <tr v-for="(item, index) in form.items" :key="index">
                                 <td class="py-2 px-4 border-b">
-                                    <div v-if="!item.product_id">
-                                        <select v-model="item.product_id" @change="onProductChange(item)" required
-                                            class="shadow border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                                            <option value="" disabled>Select Product</option>
-                                            <option v-for="product in products" :key="product.id" :value="product.id">
-                                                {{ product.item_code }} - {{ product.description }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                    <div v-else>
-                                        <textarea v-model="item.description" rows="2"
-                                            class="shadow border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-sm"
-                                            placeholder="Edit description..."></textarea>
-                                        <button @click.prevent="item.product_id = ''; item.description = ''" 
-                                             class="text-xs text-blue-500 hover:text-blue-700">
-                                             Change Product
-                                         </button>
-                                    </div>
+                                    <select v-model="item.product_id" @change="onProductChange(item)" required
+                                        class="shadow border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                        <option value="" disabled>Select Product</option>
+                                        <option v-for="product in products" :key="product.id" :value="product.id">
+                                            {{ product.item_code }} - {{ product.description }}
+                                        </option>
+                                    </select>
+                                </td>
+                                <td class="py-2 px-4 border-b">
+                                    <textarea v-model="item.description" rows="2"
+                                        class="shadow border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-sm"
+                                        placeholder="Add item details or description"></textarea>
                                 </td>
                                 <td class="py-2 px-4 border-b text-right">
                                     <input v-model.number="item.unit_price" type="number" step="0.01" min="0" required
