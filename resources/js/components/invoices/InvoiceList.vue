@@ -81,17 +81,41 @@
                     </tr>
                 </tbody>
             </table>
+            <div class="mt-4 flex justify-end space-x-6">
+                <div class="text-sm text-gray-700">
+                    <div class="text-xs text-gray-500">Total Invoices</div>
+                    <div class="font-bold">{{ formatCurrency(totalSum) }}</div>
+                </div>
+                <div class="text-sm text-gray-700">
+                    <div class="text-xs text-gray-500">Total Paid</div>
+                    <div class="font-bold text-green-600">{{ formatCurrency(totalPaid) }}</div>
+                </div>
+                <div class="text-sm text-gray-700">
+                    <div class="text-xs text-gray-500">Total Unpaid</div>
+                    <div class="font-bold text-red-600">{{ formatCurrency(totalUnpaid) }}</div>
+                </div>
+            </div>
         </div>
     </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
 
 const invoices = ref([]);
 const loading = ref(true);
 const error = ref(null);
+
+const totalSum = computed(() => {
+    return invoices.value.reduce((s, inv) => s + Number(inv.total || 0), 0);
+});
+
+const totalPaid = computed(() => {
+    return invoices.value.reduce((s, inv) => s + Number(inv.paid_amount || 0), 0);
+});
+
+const totalUnpaid = computed(() => Math.max(0, totalSum.value - totalPaid.value));
 
 const fetchInvoices = async () => {
     loading.value = true;
@@ -175,3 +199,8 @@ onMounted(() => {
     fetchInvoices();
 });
 </script>
+
+<style scoped>
+/* small styling for totals summary */
+.totals-row { background: #f9fafb; border-top: 1px solid #e5e7eb; }
+</style>
