@@ -49,7 +49,13 @@
                                 {{ invoice.tra_status === 'generated' ? 'GENERATED' : 'NOT GEN' }}
                             </span>
                         </td>
-                        <td class="py-3 px-6 text-right font-bold">{{ formatCurrency(invoice.total) }}</td>
+                        <td class="py-3 px-6 text-right">
+                            <div class="font-bold">{{ formatCurrency(invoice.total) }}</div>
+                            <div class="text-sm text-gray-600 mt-1">
+                                <div>Paid: <span class="font-medium">{{ formatCurrency(invoice.paid_amount || 0) }}</span></div>
+                                <div>Unpaid: <span class="font-medium">{{ formatCurrency(Math.max(0, (invoice.total || 0) - (invoice.paid_amount || 0))) }}</span></div>
+                            </div>
+                        </td>
                         <td class="py-3 px-6 text-center">
                             <div class="flex item-center justify-center space-x-2">
                                 <router-link :to="{ name: 'invoices.print', params: { id: invoice.id } }" class="w-5 transform hover:text-green-500 hover:scale-110" title="Print Invoice">
