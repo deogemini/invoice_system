@@ -45,7 +45,7 @@
                                 {{ invoice.tra_status === 'generated' ? 'GENERATED' : 'NOT GEN' }}
                             </span>
                         </td>
-                        <td class="py-3 px-6 text-right font-bold">{{ Number(invoice.total).toFixed(2) }}</td>
+                        <td class="py-3 px-6 text-right font-bold">{{ formatCurrency(invoice.total) }}</td>
                         <td class="py-3 px-6 text-center">
                             <div class="flex item-center justify-center space-x-2">
                                 <router-link :to="{ name: 'invoices.print', params: { id: invoice.id } }" class="w-5 transform hover:text-green-500 hover:scale-110" title="Print Invoice">
@@ -124,6 +124,13 @@ const toggleTraStatus = async (invoice) => {
         alert('Failed to update TRA status.');
         console.error(err);
     }
+};
+
+const formatCurrency = (value) => {
+    return Number(value || 0).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
 };
 
 onMounted(() => {
