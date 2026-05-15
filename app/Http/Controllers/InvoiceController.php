@@ -110,7 +110,7 @@ class InvoiceController extends Controller
         $invoice = Invoice::findOrFail($id);
 
         $request->validate([
-            'status' => 'sometimes|in:paid,unpaid',
+            'status' => 'sometimes|in:paid,unpaid,partial',
             'tra_status' => 'sometimes|in:generated,not_generated'
         ]);
 
@@ -125,6 +125,33 @@ class InvoiceController extends Controller
         $invoice->save();
 
         return response()->json(['message' => 'Invoice updated successfully']);
+    }
+
+    /**
+     * Record a payment against the invoice (partial or full).
+     */
+    public function recordPayment(Request $request, $id)
+    {
+        $invoice = Invoice::findOrFail($id);
+
+        $request->validate([
+            'amount' => 'required|numeric|min:0.01'
+        ]);
+
+        $amount = $request->input('amount');
+
+        $invoice->paid_amount = ($invoice->paid_amount ?? 0) + $amount;
+
+        if ($invoice->paid_amount >= $invoice->total) {
+            $invoice->paid_amount = $invoice->total;
+            $invoice->status = 'paid';
+        } elseif ($invoice->paid_amount > 0) {
+            $invoice->status = 'partial';
+        }
+
+        $invoice->save();
+
+        return response()->json(['message' => 'Payment recorded', 'invoice' => $invoice]);
     }
 
     /**

@@ -20,4 +20,5 @@ Route::get('dashboard/stats', [DashboardController::class, 'index']);
 Route::apiResource('customers', CustomerController::class);
 Route::apiResource('products', ProductController::class);
 Route::apiResource('invoices', InvoiceController::class);
+Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'recordPayment']);
 Route::apiResource('bankaccounts', BankAccountController::class);

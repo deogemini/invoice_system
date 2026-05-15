@@ -36,7 +36,11 @@
                         <td class="py-3 px-6 text-left">{{ invoice.customer ? invoice.customer.name : 'Unknown' }}</td>
                         <td class="py-3 px-6 text-left">{{ invoice.reference || '-' }}</td>
                         <td class="py-3 px-6 text-center">
-                            <span :class="{'bg-green-200 text-green-600': invoice.status === 'paid', 'bg-red-200 text-red-600': invoice.status === 'unpaid'}" class="py-1 px-3 rounded-full text-xs font-bold cursor-pointer" @click="toggleStatus(invoice)">
+                            <span :class="{
+                                'bg-green-200 text-green-600': invoice.status === 'paid',
+                                'bg-red-200 text-red-600': invoice.status === 'unpaid',
+                                'bg-yellow-200 text-yellow-600': invoice.status === 'partial'
+                            }" class="py-1 px-3 rounded-full text-xs font-bold cursor-pointer" @click="toggleStatus(invoice)">
                                 {{ invoice.status ? invoice.status.toUpperCase() : 'UNPAID' }}
                             </span>
                         </td>
@@ -53,6 +57,11 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
                                     </svg>
                                 </router-link>
+                                <button @click="recordPayment(invoice)" class="w-5 transform hover:text-yellow-500 hover:scale-110" title="Record Payment">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path d="M4 3a2 2 0 00-2 2v2a1 1 0 102 0V5h12v10H4v-2a1 1 0 10-2 0v2a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4z" />
+                                    </svg>
+                                </button>
                                 <button @click="deleteInvoice(invoice.id)" class="w-5 transform hover:text-red-500 hover:scale-110" title="Delete Invoice">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -122,6 +131,29 @@ const toggleTraStatus = async (invoice) => {
         invoice.tra_status = newStatus;
     } catch (err) {
         alert('Failed to update TRA status.');
+        console.error(err);
+    }
+};
+
+const recordPayment = async (invoice) => {
+    const input = prompt(`Enter payment amount for invoice ${invoice.number} (remaining: ${formatCurrency((invoice.total || 0) - (invoice.paid_amount || 0))}):`);
+    if (input === null) return; // cancelled
+    const amount = parseFloat(input.replace(/,/g, ''));
+    if (isNaN(amount) || amount <= 0) {
+        alert('Invalid amount.');
+        return;
+    }
+
+    try {
+        const resp = await axios.post(`/api/invoices/${invoice.id}/payment`, { amount });
+        // update local invoice with response
+        if (resp.data && resp.data.invoice) {
+            invoice.paid_amount = resp.data.invoice.paid_amount;
+            invoice.status = resp.data.invoice.status;
+        }
+        alert('Payment recorded successfully.');
+    } catch (err) {
+        alert('Failed to record payment.');
         console.error(err);
     }
 };

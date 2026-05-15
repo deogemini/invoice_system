@@ -17,6 +17,7 @@ class Invoice extends Model
         'sub_total',
         'discount',
         'total',
+        'paid_amount',
         'status',
         'tra_status',
         'reference',
