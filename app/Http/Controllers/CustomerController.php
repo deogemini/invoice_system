@@ -12,7 +12,7 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        $customers = Customer::orderBy('created_at', 'desc')->get();
+        $customers = Customer::withCount('invoices')->orderBy('created_at', 'desc')->get();
         return response()->json([
             'customers' => $customers
         ], 200);
