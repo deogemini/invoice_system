@@ -65,6 +65,12 @@ const routes = [
         component: InvoiceForm,
     },
     {
+        path: '/invoices/:id/edit',
+        name: 'invoices.edit',
+        component: InvoiceForm,
+        props: true,
+    },
+    {
         path: '/invoices/:id/print',
         name: 'invoices.print',
         component: InvoicePrint,

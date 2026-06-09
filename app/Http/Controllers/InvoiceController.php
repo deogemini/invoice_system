@@ -109,6 +109,86 @@ class InvoiceController extends Controller
     {
         $invoice = Invoice::findOrFail($id);
 
+        if ($request->has('items')) {
+            $request->validate([
+                'customer_id' => 'required|exists:customers,id',
+                'date' => 'required|date',
+                'due_date' => 'nullable|date',
+                'reference' => 'nullable|string',
+                'discount' => 'nullable|numeric|min:0',
+                'terms_and_conditions' => 'nullable|string',
+                'items' => 'required|array|min:1',
+                'items.*.product_id' => 'required|exists:products,id',
+                'items.*.description' => 'nullable|string',
+                'items.*.unit_price' => 'required|numeric|min:0',
+                'items.*.quantity' => 'required|integer|min:1',
+            ]);
+
+            try {
+                DB::beginTransaction();
+
+                $sub_total = 0;
+                $items_data = [];
+
+                foreach ($request->items as $item) {
+                    $line_total = $item['unit_price'] * $item['quantity'];
+                    $sub_total += $line_total;
+                    $items_data[] = [
+                        'product_id' => $item['product_id'],
+                        'description' => $item['description'] ?? null,
+                        'unit_price' => $item['unit_price'],
+                        'quantity' => $item['quantity'],
+                    ];
+                }
+
+                $discount = $request->input('discount', 0);
+                $total = $sub_total - $discount;
+
+                $invoice->update([
+                    'customer_id' => $request->customer_id,
+                    'date' => $request->date,
+                    'due_date' => $request->due_date,
+                    'reference' => $request->reference,
+                    'terms_and_conditions' => $request->terms_and_conditions,
+                    'sub_total' => $sub_total,
+                    'discount' => $discount,
+                    'total' => $total,
+                ]);
+
+                $invoice->items()->delete();
+
+                foreach ($items_data as $item_data) {
+                    $invoice->items()->create($item_data);
+                }
+
+                $payableTotal = max(0, $invoice->total);
+
+                if (($invoice->paid_amount ?? 0) > $payableTotal) {
+                    $invoice->paid_amount = $payableTotal;
+                }
+
+                if (($invoice->paid_amount ?? 0) >= $payableTotal && $payableTotal > 0) {
+                    $invoice->status = 'paid';
+                } elseif (($invoice->paid_amount ?? 0) > 0) {
+                    $invoice->status = 'partial';
+                } else {
+                    $invoice->status = 'unpaid';
+                }
+
+                $invoice->save();
+
+                DB::commit();
+
+                return response()->json([
+                    'message' => 'Invoice updated successfully',
+                    'invoice' => $invoice->load('items', 'customer')
+                ]);
+            } catch (\Exception $e) {
+                DB::rollBack();
+                return response()->json(['message' => 'Failed to update invoice', 'error' => $e->getMessage()], 500);
+            }
+        }
+
         $request->validate([
             'status' => 'sometimes|in:paid,unpaid,partial',
             'tra_status' => 'sometimes|in:generated,not_generated'

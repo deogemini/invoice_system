@@ -1,6 +1,6 @@
 <template>
     <div class="container mx-auto p-4">
-        <h1 class="text-2xl font-bold mb-6">Create New Invoice</h1>
+        <h1 class="text-2xl font-bold mb-6">{{ isEditMode ? 'Edit Invoice' : 'Create New Invoice' }}</h1>
 
         <div v-if="error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
             <span class="block sm:inline">{{ error }}</span>
@@ -138,7 +138,7 @@
                 <button :disabled="loading"
                     class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline disabled:opacity-50"
                     type="submit">
-                    {{ loading ? 'Saving...' : 'Save Invoice' }}
+                    {{ loading ? 'Saving...' : (isEditMode ? 'Update Invoice' : 'Save Invoice') }}
                 </button>
                 <router-link :to="{ name: 'invoices.index' }"
                     class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
@@ -152,15 +152,17 @@
 <script setup>
 import { ref, onMounted, computed } from 'vue';
 import axios from 'axios';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter();
+const route = useRoute();
 
 const customers = ref([]);
 const products = ref([]);
 const loading = ref(false);
 const error = ref(null);
 const errors = ref({});
+const isEditMode = computed(() => !!route.params.id);
 
 const form = ref({
     customer_id: '',
@@ -189,6 +191,42 @@ const fetchProducts = async () => {
         products.value = response.data.products;
     } catch (err) {
         console.error('Failed to load products', err);
+    }
+};
+
+const fetchInvoice = async () => {
+    if (!isEditMode.value) {
+        return;
+    }
+
+    loading.value = true;
+    error.value = null;
+
+    try {
+        const response = await axios.get(`/api/invoices/${route.params.id}`);
+        const invoice = response.data.invoice;
+
+        form.value = {
+            customer_id: invoice.customer_id,
+            date: invoice.date,
+            due_date: invoice.due_date || '',
+            reference: invoice.reference || '',
+            discount: Number(invoice.discount || 0),
+            terms_and_conditions: invoice.terms_and_conditions || '',
+            items: invoice.items && invoice.items.length
+                ? invoice.items.map((item) => ({
+                    product_id: item.product_id,
+                    description: item.description || '',
+                    unit_price: Number(item.unit_price || 0),
+                    quantity: Number(item.quantity || 1),
+                }))
+                : [{ product_id: '', description: '', unit_price: 0, quantity: 1 }],
+        };
+    } catch (err) {
+        error.value = 'Failed to load invoice.';
+        console.error(err);
+    } finally {
+        loading.value = false;
     }
 };
 
@@ -224,7 +262,12 @@ const submitForm = async () => {
     errors.value = {};
 
     try {
-        await axios.post('/api/invoices', form.value);
+        if (isEditMode.value) {
+            await axios.put(`/api/invoices/${route.params.id}`, form.value);
+        } else {
+            await axios.post('/api/invoices', form.value);
+        }
+
         router.push({ name: 'invoices.index' });
     } catch (err) {
         if (err.response && err.response.status === 422) {
@@ -244,5 +287,6 @@ const submitForm = async () => {
 onMounted(() => {
     fetchCustomers();
     fetchProducts();
+    fetchInvoice();
 });
 </script>
