@@ -16,6 +16,7 @@ class DashboardController extends Controller
             DB::raw('count(*) as count'),
             DB::raw('sum(total) as total_amount')
         )
+        ->visibleTo(request()->user())
         ->groupBy('date')
         ->orderBy('date', 'asc')
         ->limit(30)

@@ -49,6 +49,8 @@
                             <th class="py-3 px-6 text-left">Date</th>
                             <th class="py-3 px-6 text-left">Customer</th>
                             <th class="py-3 px-6 text-left">Reference</th>
+                            <th class="py-3 px-6 text-left">Owner</th>
+                            <th class="py-3 px-6 text-left">Updated By</th>
                             <th class="py-3 px-6 text-center">Status</th>
                             <th class="py-3 px-6 text-center">TRA Status</th>
                             <th class="py-3 px-6 text-right">Total</th>
@@ -61,6 +63,8 @@
                             <td class="py-3 px-6 text-left">{{ invoice.date }}</td>
                             <td class="py-3 px-6 text-left">{{ invoice.customer ? invoice.customer.name : 'Unknown' }}</td>
                             <td class="py-3 px-6 text-left">{{ invoice.reference || '-' }}</td>
+                            <td class="py-3 px-6 text-left">{{ invoice.owner?.name || '-' }}</td>
+                            <td class="py-3 px-6 text-left">{{ invoice.updater?.name || '-' }}</td>
                             <td class="py-3 px-6 text-center">
                                 <span :class="{
                                     'bg-green-200 text-green-600': invoice.status === 'paid',
@@ -108,7 +112,7 @@
                             </td>
                         </tr>
                         <tr v-if="filteredInvoices.length === 0">
-                            <td colspan="8" class="py-3 px-6 text-center">No invoices found.</td>
+                            <td colspan="10" class="py-3 px-6 text-center">No invoices found.</td>
                         </tr>
                     </tbody>
                 </table>

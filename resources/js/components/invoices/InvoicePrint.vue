@@ -73,6 +73,10 @@
                             <td colspan="4" class="border border-black px-4 py-2 text-right font-bold print:px-2 print:py-1">DISCOUNT</td>
                             <td class="border border-black px-4 py-2 font-bold print:px-2 print:py-1">{{ formatCurrency(invoice.discount) }}</td>
                         </tr>
+                        <tr v-if="invoice.include_vat">
+                            <td colspan="4" class="border border-black px-4 py-2 text-right font-bold print:px-2 print:py-1">VAT ({{ Number(invoice.vat_rate || 18).toFixed(0) }}%)</td>
+                            <td class="border border-black px-4 py-2 font-bold print:px-2 print:py-1">{{ formatCurrency(invoice.vat_amount) }}</td>
+                        </tr>
                         <tr>
                             <td colspan="4" class="border border-black px-4 py-2 text-right font-bold print:px-2 print:py-1">TOTAL</td>
                             <td class="border border-black px-4 py-2 font-bold print:px-2 print:py-1">{{ formatCurrency(invoice.total) }}</td>
@@ -88,16 +92,14 @@
                 <div class="flex justify-between items-end">
                     <!-- Bank Details -->
                     <div class="w-1/2 text-sm text-gray-700 print:text-xs">
-                        <div v-if="bankAccounts.length > 0">
-                            <div v-for="bank in bankAccounts" :key="bank.id" class="mb-4 print:mb-2">
-                                <p><span class="font-bold">BANK:</span> {{ bank.bank_name }}</p>
-                                <p><span class="font-bold">BRANCH:</span> {{ bank.account_name }}</p> <!-- Assuming account name might hold branch or generic name, or just use bank name context. The user form has Bank Name and Account Name. Image has Branch. I will just list what we have. -->
-                                <p><span class="font-bold">ACCOUNT NUMBER:</span> {{ bank.account_number }}</p>
-                                <p><span class="font-bold">CURRENCY:</span> {{ bank.currency }}</p>
-                                <p v-if="bank.swift_code"><span class="font-bold">SWIFT CODE:</span> {{ bank.swift_code }}</p>
-                            </div>
+                        <div v-if="selectedBankAccount" class="mb-4 print:mb-2">
+                            <p><span class="font-bold">BANK:</span> {{ selectedBankAccount.bank_name }}</p>
+                            <p><span class="font-bold">ACCOUNT NAME:</span> {{ selectedBankAccount.account_name }}</p>
+                            <p><span class="font-bold">ACCOUNT NUMBER:</span> {{ selectedBankAccount.account_number }}</p>
+                            <p><span class="font-bold">CURRENCY:</span> {{ selectedBankAccount.currency }}</p>
+                            <p v-if="selectedBankAccount.swift_code"><span class="font-bold">SWIFT CODE:</span> {{ selectedBankAccount.swift_code }}</p>
                         </div>
-                        <p v-else class="italic text-gray-500">No bank details available.</p>
+                        <p v-else class="italic text-gray-500">No bank account selected.</p>
                     </div>
 
                     <!-- Stamp -->
@@ -125,7 +127,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useRoute } from 'vue-router';
 
@@ -147,9 +149,7 @@ const fetchData = async () => {
         const settingsResponse = await axios.get('/api/company-settings');
         settings.value = settingsResponse.data;
 
-        // Fetch Bank Accounts (Get all and display first one or all)
-        const bankResponse = await axios.get('/api/bankaccounts');
-        bankAccounts.value = bankResponse.data.bank_accounts;
+        bankAccounts.value = invoice.value.bank_account ? [invoice.value.bank_account] : [];
 
     } catch (err) {
         console.error(err);
@@ -168,6 +168,8 @@ const formatDate = (dateString) => {
 const formatCurrency = (value) => {
     return new Intl.NumberFormat('en-US', { style: 'decimal', minimumFractionDigits: 2 }).format(value) + '/=';
 };
+
+const selectedBankAccount = computed(() => invoice.value?.bank_account || bankAccounts.value[0] || null);
 
 const printInvoice = () => {
     window.print();

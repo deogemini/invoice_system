@@ -4,10 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Concerns\TracksUserActivity;
 
 class Product extends Model
 {
-    use HasFactory;
+    use HasFactory, TracksUserActivity;
 
-    protected $fillable = ['item_code', 'description', 'unit_price'];
+    protected $fillable = [
+        'user_id',
+        'created_by',
+        'updated_by',
+        'deleted_by',
+        'item_code',
+        'description',
+        'unit_price',
+    ];
 }

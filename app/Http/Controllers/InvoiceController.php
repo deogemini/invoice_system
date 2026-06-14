@@ -4,8 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Models\Invoice;
 use App\Models\InvoiceItem;
+use App\Models\BankAccount;
+use App\Models\Customer;
+use App\Models\Product;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class InvoiceController extends Controller
 {
@@ -14,7 +19,10 @@ class InvoiceController extends Controller
      */
     public function index()
     {
-        $invoices = Invoice::with('customer')->orderBy('created_at', 'desc')->get();
+        $invoices = Invoice::with(['customer', 'owner:id,name,email,role', 'creator:id,name,email,role', 'updater:id,name,email,role'])
+            ->visibleTo(request()->user())
+            ->orderBy('created_at', 'desc')
+            ->get();
         return response()->json([
             'invoices' => $invoices
         ]);
@@ -23,21 +31,32 @@ class InvoiceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, ActivityLogger $logger)
     {
         $request->validate([
             'customer_id' => 'required|exists:customers,id',
+            'bank_account_id' => 'nullable|exists:bank_accounts,id',
             'date' => 'required|date',
             'due_date' => 'nullable|date',
             'reference' => 'nullable|string',
             'discount' => 'nullable|numeric|min:0',
+            'include_vat' => 'nullable|boolean',
             'terms_and_conditions' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.description' => 'nullable|string',
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.quantity' => 'required|integer|min:1',
+            'user_id' => ['nullable', Rule::exists('users', 'id')->where('is_active', true)],
         ]);
+
+        $ownerId = $request->user()->isAdministrator()
+            ? ($request->input('user_id') ?? $request->user()->id)
+            : $request->user()->id;
+
+        abort_unless(Customer::visibleTo($request->user())->whereKey($request->customer_id)->exists(), 403);
+        abort_unless(!$request->filled('bank_account_id') || BankAccount::visibleTo($request->user())->whereKey($request->bank_account_id)->exists(), 403);
+        abort_unless(Product::visibleTo($request->user())->whereIn('id', collect($request->items)->pluck('product_id'))->count() === count(array_unique(collect($request->items)->pluck('product_id')->all())), 403);
 
         try {
             DB::beginTransaction();
@@ -49,6 +68,7 @@ class InvoiceController extends Controller
                 $line_total = $item['unit_price'] * $item['quantity'];
                 $sub_total += $line_total;
                 $items_data[] = [
+                    'user_id' => $ownerId,
                     'product_id' => $item['product_id'],
                     'description' => $item['description'] ?? null,
                     'unit_price' => $item['unit_price'],
@@ -56,17 +76,26 @@ class InvoiceController extends Controller
                 ];
             }
 
-            $discount = $request->input('discount', 0);
-            $total = $sub_total - $discount;
+            $discount = min((float) $request->input('discount', 0), $sub_total);
+            $taxableAmount = max(0, $sub_total - $discount);
+            $includeVat = $request->boolean('include_vat');
+            $vatRate = 18;
+            $vatAmount = $includeVat ? round($taxableAmount * ($vatRate / 100), 2) : 0;
+            $total = $taxableAmount + $vatAmount;
 
             $invoice = Invoice::create([
+                'user_id' => $ownerId,
                 'customer_id' => $request->customer_id,
+                'bank_account_id' => $request->input('bank_account_id') ?: null,
                 'date' => $request->date,
                 'due_date' => $request->due_date,
                 'reference' => $request->reference,
                 'terms_and_conditions' => $request->terms_and_conditions,
                 'sub_total' => $sub_total,
                 'discount' => $discount,
+                'include_vat' => $includeVat,
+                'vat_rate' => $vatRate,
+                'vat_amount' => $vatAmount,
                 'total' => $total,
             ]);
 
@@ -78,11 +107,13 @@ class InvoiceController extends Controller
                 $invoice->items()->create($item_data);
             }
 
+            $logger->log('invoice.created', $invoice, 'Invoice created.');
+
             DB::commit();
 
             return response()->json([
                 'message' => 'Invoice created successfully',
-                'invoice' => $invoice->load('items', 'customer')
+                'invoice' => $invoice->load('items', 'customer', 'bankAccount')
             ], 201);
 
         } catch (\Exception $e) {
@@ -96,7 +127,9 @@ class InvoiceController extends Controller
      */
     public function show(string $id)
     {
-        $invoice = Invoice::with(['customer', 'items.product'])->find($id);
+        $invoice = Invoice::with(['customer', 'bankAccount', 'items.product', 'owner:id,name,email,role', 'creator:id,name,email,role', 'updater:id,name,email,role'])
+            ->visibleTo(request()->user())
+            ->find($id);
         if (!$invoice) {
             return response()->json(['message' => 'Invoice not found'], 404);
         }
@@ -105,24 +138,35 @@ class InvoiceController extends Controller
         ]);
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $id, ActivityLogger $logger)
     {
-        $invoice = Invoice::findOrFail($id);
+        $invoice = Invoice::visibleTo($request->user())->findOrFail($id);
 
         if ($request->has('items')) {
             $request->validate([
                 'customer_id' => 'required|exists:customers,id',
+                'bank_account_id' => 'nullable|exists:bank_accounts,id',
                 'date' => 'required|date',
                 'due_date' => 'nullable|date',
                 'reference' => 'nullable|string',
                 'discount' => 'nullable|numeric|min:0',
+                'include_vat' => 'nullable|boolean',
                 'terms_and_conditions' => 'nullable|string',
                 'items' => 'required|array|min:1',
                 'items.*.product_id' => 'required|exists:products,id',
                 'items.*.description' => 'nullable|string',
                 'items.*.unit_price' => 'required|numeric|min:0',
                 'items.*.quantity' => 'required|integer|min:1',
+                'user_id' => ['nullable', Rule::exists('users', 'id')->where('is_active', true)],
             ]);
+
+            $ownerId = $request->user()->isAdministrator()
+                ? ($request->input('user_id') ?? $invoice->user_id ?? $request->user()->id)
+                : $invoice->user_id;
+
+            abort_unless(Customer::visibleTo($request->user())->whereKey($request->customer_id)->exists(), 403);
+            abort_unless(!$request->filled('bank_account_id') || BankAccount::visibleTo($request->user())->whereKey($request->bank_account_id)->exists(), 403);
+            abort_unless(Product::visibleTo($request->user())->whereIn('id', collect($request->items)->pluck('product_id'))->count() === count(array_unique(collect($request->items)->pluck('product_id')->all())), 403);
 
             try {
                 DB::beginTransaction();
@@ -134,6 +178,7 @@ class InvoiceController extends Controller
                     $line_total = $item['unit_price'] * $item['quantity'];
                     $sub_total += $line_total;
                     $items_data[] = [
+                        'user_id' => $ownerId,
                         'product_id' => $item['product_id'],
                         'description' => $item['description'] ?? null,
                         'unit_price' => $item['unit_price'],
@@ -141,17 +186,26 @@ class InvoiceController extends Controller
                     ];
                 }
 
-                $discount = $request->input('discount', 0);
-                $total = $sub_total - $discount;
+                $discount = min((float) $request->input('discount', 0), $sub_total);
+                $taxableAmount = max(0, $sub_total - $discount);
+                $includeVat = $request->boolean('include_vat');
+                $vatRate = 18;
+                $vatAmount = $includeVat ? round($taxableAmount * ($vatRate / 100), 2) : 0;
+                $total = $taxableAmount + $vatAmount;
 
                 $invoice->update([
+                    'user_id' => $ownerId,
                     'customer_id' => $request->customer_id,
+                    'bank_account_id' => $request->input('bank_account_id') ?: null,
                     'date' => $request->date,
                     'due_date' => $request->due_date,
                     'reference' => $request->reference,
                     'terms_and_conditions' => $request->terms_and_conditions,
                     'sub_total' => $sub_total,
                     'discount' => $discount,
+                    'include_vat' => $includeVat,
+                    'vat_rate' => $vatRate,
+                    'vat_amount' => $vatAmount,
                     'total' => $total,
                 ]);
 
@@ -176,12 +230,13 @@ class InvoiceController extends Controller
                 }
 
                 $invoice->save();
+                $logger->log('invoice.updated', $invoice, 'Invoice updated.');
 
                 DB::commit();
 
                 return response()->json([
                     'message' => 'Invoice updated successfully',
-                    'invoice' => $invoice->load('items', 'customer')
+                    'invoice' => $invoice->load('items', 'customer', 'bankAccount')
                 ]);
             } catch (\Exception $e) {
                 DB::rollBack();
@@ -203,6 +258,7 @@ class InvoiceController extends Controller
         }
 
         $invoice->save();
+        $logger->log('invoice.status_updated', $invoice, 'Invoice status updated.');
 
         return response()->json(['message' => 'Invoice updated successfully']);
     }
@@ -210,9 +266,9 @@ class InvoiceController extends Controller
     /**
      * Record a payment against the invoice (partial or full).
      */
-    public function recordPayment(Request $request, $id)
+    public function recordPayment(Request $request, $id, ActivityLogger $logger)
     {
-        $invoice = Invoice::findOrFail($id);
+        $invoice = Invoice::visibleTo($request->user())->findOrFail($id);
 
         $request->validate([
             'amount' => 'required|numeric|min:0.01'
@@ -230,6 +286,7 @@ class InvoiceController extends Controller
         }
 
         $invoice->save();
+        $logger->log('invoice.payment_recorded', $invoice, 'Payment recorded.', ['amount' => $amount]);
 
         return response()->json(['message' => 'Payment recorded', 'invoice' => $invoice]);
     }
@@ -237,13 +294,15 @@ class InvoiceController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id, ActivityLogger $logger)
     {
-        $invoice = Invoice::find($id);
+        $invoice = Invoice::visibleTo($request->user())->find($id);
         if (!$invoice) {
             return response()->json(['message' => 'Invoice not found'], 404);
         }
 
+        $invoice->forceFill(['deleted_by' => $request->user()->id])->save();
+        $logger->log('invoice.deleted', $invoice, 'Invoice deleted.');
         $invoice->delete();
 
         return response()->json(['message' => 'Invoice deleted successfully']);

@@ -26,6 +26,8 @@
                         <th class="py-3 px-6 text-left">Phone</th>
                         <th class="py-3 px-6 text-left">Address</th>
                         <th class="py-3 px-6 text-left">P.O. Box</th>
+                        <th class="py-3 px-6 text-left">Owner</th>
+                        <th class="py-3 px-6 text-left">Updated By</th>
                         <th class="py-3 px-6 text-center">Invoices Created</th>
                         <th class="py-3 px-6 text-center">Actions</th>
                     </tr>
@@ -39,6 +41,8 @@
                         <td class="py-3 px-6 text-left">{{ customer.phone || '-' }}</td>
                         <td class="py-3 px-6 text-left">{{ customer.address || '-' }}</td>
                         <td class="py-3 px-6 text-left">{{ customer.p_o_box || '-' }}</td>
+                        <td class="py-3 px-6 text-left">{{ customer.owner?.name || '-' }}</td>
+                        <td class="py-3 px-6 text-left">{{ customer.updater?.name || '-' }}</td>
                         <td class="py-3 px-6 text-center font-medium">{{ customer.invoices_count ?? 0 }}</td>
                         <td class="py-3 px-6 text-center">
                             <div class="flex item-center justify-center">
@@ -56,7 +60,7 @@
                         </td>
                     </tr>
                     <tr v-if="customers.length === 0">
-                        <td colspan="9" class="py-3 px-6 text-center">No customers found.</td>
+                        <td colspan="11" class="py-3 px-6 text-center">No customers found.</td>
                     </tr>
                 </tbody>
             </table>

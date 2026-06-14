@@ -23,6 +23,8 @@
                         <th class="py-3 px-6 text-left">Item Code</th>
                         <th class="py-3 px-6 text-left">Description</th>
                         <th class="py-3 px-6 text-left">Unit Price</th>
+                        <th class="py-3 px-6 text-left">Owner</th>
+                        <th class="py-3 px-6 text-left">Updated By</th>
                         <th class="py-3 px-6 text-center">Actions</th>
                     </tr>
                 </thead>
@@ -32,6 +34,8 @@
                         <td class="py-3 px-6 text-left">{{ product.item_code }}</td>
                         <td class="py-3 px-6 text-left">{{ product.description }}</td>
                         <td class="py-3 px-6 text-left">{{ product.unit_price }}</td>
+                        <td class="py-3 px-6 text-left">{{ product.owner?.name || '-' }}</td>
+                        <td class="py-3 px-6 text-left">{{ product.updater?.name || '-' }}</td>
                         <td class="py-3 px-6 text-center">
                             <div class="flex item-center justify-center">
                                 <router-link :to="{ name: 'products.edit', params: { id: product.id } }" class="w-4 mr-2 transform hover:text-purple-500 hover:scale-110">
@@ -48,7 +52,7 @@
                         </td>
                     </tr>
                     <tr v-if="products.length === 0">
-                        <td colspan="5" class="py-3 px-6 text-center">No products found.</td>
+                        <td colspan="7" class="py-3 px-6 text-center">No products found.</td>
                     </tr>
                 </tbody>
             </table>

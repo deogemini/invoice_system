@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CompanySetting;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -10,20 +11,22 @@ class CompanySettingController extends Controller
 {
     public function show()
     {
-        $settings = CompanySetting::first();
+        $settings = CompanySetting::visibleTo(request()->user())->first();
         if (!$settings) {
             $settings = CompanySetting::create([
+                'user_id' => request()->user()->id,
                 'company_name' => 'My Company',
             ]);
         }
         return response()->json($settings);
     }
 
-    public function update(Request $request)
+    public function update(Request $request, ActivityLogger $logger)
     {
-        $settings = CompanySetting::first();
+        $settings = CompanySetting::visibleTo($request->user())->first();
         if (!$settings) {
             $settings = new CompanySetting();
+            $settings->user_id = $request->user()->id;
         }
 
         $request->validate([
@@ -57,6 +60,7 @@ class CompanySettingController extends Controller
 
         $settings->fill($data);
         $settings->save();
+        $logger->log('company_settings.updated', $settings, 'Company settings updated.');
 
         return response()->json([
             'message' => 'Company settings updated successfully',

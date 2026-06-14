@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Customer;
+use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class CustomerController extends Controller
 {
@@ -12,7 +14,11 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        $customers = Customer::withCount('invoices')->orderBy('created_at', 'desc')->get();
+        $customers = Customer::with(['owner:id,name,email,role', 'creator:id,name,email,role', 'updater:id,name,email,role'])
+            ->withCount('invoices')
+            ->visibleTo(request()->user())
+            ->orderBy('created_at', 'desc')
+            ->get();
         return response()->json([
             'customers' => $customers
         ], 200);
@@ -21,7 +27,7 @@ class CustomerController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, ActivityLogger $logger)
     {
         $validatedData = $request->validate([
             'name' => 'required|string|max:255',
@@ -30,9 +36,15 @@ class CustomerController extends Controller
             'tin' => 'nullable|string|max:50',
             'phone' => 'nullable|string|max:50',
             'p_o_box' => 'nullable|string|max:50',
+            'user_id' => ['nullable', Rule::exists('users', 'id')->where('is_active', true)],
         ]);
 
+        $validatedData['user_id'] = $request->user()->isAdministrator()
+            ? ($validatedData['user_id'] ?? $request->user()->id)
+            : $request->user()->id;
+
         $customer = Customer::create($validatedData);
+        $logger->log('customer.created', $customer, 'Customer created.');
 
         return response()->json([
             'message' => 'Customer created successfully',
@@ -45,7 +57,9 @@ class CustomerController extends Controller
      */
     public function show(string $id)
     {
-        $customer = Customer::find($id);
+        $customer = Customer::with(['owner:id,name,email,role', 'creator:id,name,email,role', 'updater:id,name,email,role'])
+            ->visibleTo(request()->user())
+            ->find($id);
         if (!$customer) {
             return response()->json(['message' => 'Customer not found'], 404);
         }
@@ -55,9 +69,9 @@ class CustomerController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $id, ActivityLogger $logger)
     {
-        $customer = Customer::find($id);
+        $customer = Customer::visibleTo($request->user())->find($id);
         if (!$customer) {
             return response()->json(['message' => 'Customer not found'], 404);
         }
@@ -69,9 +83,15 @@ class CustomerController extends Controller
             'tin' => 'nullable|string|max:50',
             'phone' => 'nullable|string|max:50',
             'p_o_box' => 'nullable|string|max:50',
+            'user_id' => ['nullable', Rule::exists('users', 'id')->where('is_active', true)],
         ]);
 
+        if (!$request->user()->isAdministrator()) {
+            unset($validatedData['user_id']);
+        }
+
         $customer->update($validatedData);
+        $logger->log('customer.updated', $customer, 'Customer updated.');
 
         return response()->json([
             'message' => 'Customer updated successfully',
@@ -82,13 +102,15 @@ class CustomerController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Request $request, string $id, ActivityLogger $logger)
     {
-        $customer = Customer::find($id);
+        $customer = Customer::visibleTo($request->user())->find($id);
         if (!$customer) {
             return response()->json(['message' => 'Customer not found'], 404);
         }
 
+        $customer->forceFill(['deleted_by' => $request->user()->id])->save();
+        $logger->log('customer.deleted', $customer, 'Customer deleted.');
         $customer->delete();
 
         return response()->json(['message' => 'Customer deleted successfully'], 200);

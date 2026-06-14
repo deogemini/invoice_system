@@ -48,6 +48,18 @@
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                     <p class="text-xs text-gray-500 mt-1">Invoice Number will be auto-generated.</p>
                 </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_account">
+                        Bank Account to Use
+                    </label>
+                    <select v-model="form.bank_account_id" id="bank_account"
+                        class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">No bank account selected</option>
+                        <option v-for="bank in bankAccounts" :key="bank.id" :value="bank.id">
+                            {{ bank.bank_name }} - {{ bank.account_name }} ({{ bank.currency }})
+                        </option>
+                    </select>
+                </div>
             </div>
 
             <!-- Items Section -->
@@ -118,6 +130,14 @@
                         <input v-model.number="form.discount" type="number" step="0.01" min="0"
                             class="shadow appearance-none border rounded w-24 py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-right">
                     </div>
+                    <label class="flex items-center justify-between mb-2 gap-3">
+                        <span class="font-bold">Generate with VAT (18%):</span>
+                        <input v-model="form.include_vat" type="checkbox" class="h-4 w-4 rounded">
+                    </label>
+                    <div v-if="form.include_vat" class="flex justify-between mb-2">
+                        <span class="font-bold">VAT Amount:</span>
+                        <span>{{ vatAmount.toFixed(2) }}</span>
+                    </div>
                     <div class="flex justify-between border-t pt-2 mt-2">
                         <span class="font-bold text-xl">Grand Total:</span>
                         <span class="font-bold text-xl">{{ grandTotal.toFixed(2) }}</span>
@@ -159,6 +179,7 @@ const route = useRoute();
 
 const customers = ref([]);
 const products = ref([]);
+const bankAccounts = ref([]);
 const loading = ref(false);
 const error = ref(null);
 const errors = ref({});
@@ -166,10 +187,12 @@ const isEditMode = computed(() => !!route.params.id);
 
 const form = ref({
     customer_id: '',
+    bank_account_id: '',
     date: new Date().toISOString().slice(0, 10),
     due_date: '',
     reference: '',
     discount: 0,
+    include_vat: false,
     terms_and_conditions: '',
     items: [
         { product_id: '', description: '', unit_price: 0, quantity: 1 }
@@ -194,6 +217,15 @@ const fetchProducts = async () => {
     }
 };
 
+const fetchBankAccounts = async () => {
+    try {
+        const response = await axios.get('/api/bankaccounts');
+        bankAccounts.value = response.data.bank_accounts;
+    } catch (err) {
+        console.error('Failed to load bank accounts', err);
+    }
+};
+
 const fetchInvoice = async () => {
     if (!isEditMode.value) {
         return;
@@ -208,10 +240,12 @@ const fetchInvoice = async () => {
 
         form.value = {
             customer_id: invoice.customer_id,
+            bank_account_id: invoice.bank_account_id || '',
             date: invoice.date,
             due_date: invoice.due_date || '',
             reference: invoice.reference || '',
             discount: Number(invoice.discount || 0),
+            include_vat: Boolean(invoice.include_vat),
             terms_and_conditions: invoice.terms_and_conditions || '',
             items: invoice.items && invoice.items.length
                 ? invoice.items.map((item) => ({
@@ -253,7 +287,15 @@ const subTotal = computed(() => {
 });
 
 const grandTotal = computed(() => {
-    return subTotal.value - form.value.discount;
+    return taxableAmount.value + vatAmount.value;
+});
+
+const taxableAmount = computed(() => {
+    return Math.max(0, subTotal.value - Number(form.value.discount || 0));
+});
+
+const vatAmount = computed(() => {
+    return form.value.include_vat ? taxableAmount.value * 0.18 : 0;
 });
 
 const submitForm = async () => {
@@ -287,6 +329,7 @@ const submitForm = async () => {
 onMounted(() => {
     fetchCustomers();
     fetchProducts();
+    fetchBankAccounts();
     fetchInvoice();
 });
 </script>

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -15,11 +16,20 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $administrator = User::updateOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Administrator',
+                'password' => 'Admin@12345',
+                'role' => User::ROLE_ADMINISTRATOR,
+                'is_active' => true,
+            ]
+        );
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        foreach (['customers', 'products', 'invoices', 'invoice_items', 'bank_accounts', 'company_settings'] as $table) {
+            DB::table($table)->whereNull('user_id')->update(['user_id' => $administrator->id]);
+            DB::table($table)->whereNull('created_by')->update(['created_by' => $administrator->id]);
+            DB::table($table)->whereNull('updated_by')->update(['updated_by' => $administrator->id]);
+        }
     }
 }
