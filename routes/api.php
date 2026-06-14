@@ -3,6 +3,7 @@
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\DeliveryNoteController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\BankAccountController;
@@ -33,6 +34,7 @@ Route::middleware(['web', 'auth:sanctum'])->group(function () {
     Route::apiResource('products', ProductController::class);
     Route::apiResource('invoices', InvoiceController::class);
     Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'recordPayment']);
+    Route::apiResource('delivery-notes', DeliveryNoteController::class);
     Route::apiResource('bankaccounts', BankAccountController::class);
 
     Route::middleware('role:administrator')->prefix('admin')->group(function () {

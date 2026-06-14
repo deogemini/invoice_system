@@ -14,6 +14,9 @@ import ProductForm from './components/products/ProductForm.vue';
 import InvoiceList from './components/invoices/InvoiceList.vue';
 import InvoiceForm from './components/invoices/InvoiceForm.vue';
 import InvoicePrint from './components/invoices/InvoicePrint.vue';
+import DeliveryNoteList from './components/delivery-notes/DeliveryNoteList.vue';
+import DeliveryNoteForm from './components/delivery-notes/DeliveryNoteForm.vue';
+import DeliveryNotePrint from './components/delivery-notes/DeliveryNotePrint.vue';
 import BankAccountList from './components/bankaccounts/BankAccountList.vue';
 import BankAccountForm from './components/bankaccounts/BankAccountForm.vue';
 import CompanySettingForm from './components/settings/CompanySettingForm.vue';
@@ -140,6 +143,32 @@ const routes = [
         path: '/invoices/:id/print',
         name: 'invoices.print',
         component: InvoicePrint,
+        props: true,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/delivery-notes',
+        name: 'delivery-notes.index',
+        component: DeliveryNoteList,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/delivery-notes/create',
+        name: 'delivery-notes.create',
+        component: DeliveryNoteForm,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/delivery-notes/:id/edit',
+        name: 'delivery-notes.edit',
+        component: DeliveryNoteForm,
+        props: true,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/delivery-notes/:id/print',
+        name: 'delivery-notes.print',
+        component: DeliveryNotePrint,
         props: true,
         meta: { requiresAuth: true },
     },
