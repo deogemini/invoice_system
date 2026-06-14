@@ -18,7 +18,12 @@ class DeliveryNoteItem extends Model
         'delivery_note_id',
         'description',
         'quantity',
+        'unit_price',
         'supplier_signature',
+    ];
+
+    protected $casts = [
+        'unit_price' => 'decimal:2',
     ];
 
     public function deliveryNote()

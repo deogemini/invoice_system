@@ -47,6 +47,7 @@ class DeliveryNoteController extends Controller
                     'user_id' => $ownerId,
                     'description' => $item['description'],
                     'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'] ?? 0,
                     'supplier_signature' => $item['supplier_signature'] ?? null,
                 ]);
             }
@@ -99,6 +100,7 @@ class DeliveryNoteController extends Controller
                     'user_id' => $ownerId,
                     'description' => $item['description'],
                     'quantity' => $item['quantity'],
+                    'unit_price' => $item['unit_price'] ?? 0,
                     'supplier_signature' => $item['supplier_signature'] ?? null,
                 ]);
             }
@@ -137,6 +139,7 @@ class DeliveryNoteController extends Controller
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string',
             'items.*.quantity' => 'required|integer|min:1',
+            'items.*.unit_price' => 'nullable|numeric|min:0',
             'items.*.supplier_signature' => 'nullable|string',
             'user_id' => ['nullable', Rule::exists('users', 'id')->where('is_active', true)],
         ]);
