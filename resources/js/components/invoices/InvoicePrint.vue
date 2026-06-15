@@ -74,7 +74,7 @@
                             <td class="border border-black px-4 py-2 font-bold print:px-2 print:py-1">{{ formatCurrency(invoice.discount) }}</td>
                         </tr>
                         <tr v-if="invoice.include_vat">
-                            <td colspan="4" class="border border-black px-4 py-2 text-right font-bold print:px-2 print:py-1">PRICE BEFORE VAT</td>
+                            <td colspan="4" class="border border-black px-4 py-2 text-right font-bold print:px-2 print:py-1">VAT EXCLUSIVE</td>
                             <td class="border border-black px-4 py-2 font-bold print:px-2 print:py-1">{{ formatCurrency(priceBeforeVat) }}</td>
                         </tr>
                         <tr v-if="invoice.include_vat">
@@ -82,7 +82,7 @@
                             <td class="border border-black px-4 py-2 font-bold print:px-2 print:py-1">{{ formatCurrency(invoice.vat_amount) }}</td>
                         </tr>
                         <tr>
-                            <td colspan="4" class="border border-black px-4 py-2 text-right font-bold print:px-2 print:py-1">TOTAL</td>
+                            <td colspan="4" class="border border-black px-4 py-2 text-right font-bold print:px-2 print:py-1">VAT INCLUSIVE</td>
                             <td class="border border-black px-4 py-2 font-bold print:px-2 print:py-1">{{ formatCurrency(invoice.total) }}</td>
                         </tr>
                     </tbody>
