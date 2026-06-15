@@ -47,7 +47,6 @@
                             <th class="border border-black px-4 py-2 text-left w-12 print:px-2 print:py-1">S/N</th>
                             <th class="border border-black px-4 py-2 text-left print:px-2 print:py-1">DESCRIPTION</th>
                             <th class="border border-black px-4 py-2 text-left w-20 print:px-2 print:py-1">QTY</th>
-                            <th class="border border-black px-4 py-2 text-left w-32 print:px-2 print:py-1">PRICE PER UNIT</th>
                             <th class="border border-black px-4 py-2 text-left w-48 print:px-2 print:py-1">SIGN OF SUPPLIER</th>
                         </tr>
                     </thead>
@@ -56,7 +55,6 @@
                             <td class="border border-black px-4 py-2 print:px-2 print:py-1">{{ index + 1 }}</td>
                             <td class="border border-black px-4 py-2 print:px-2 print:py-1 whitespace-pre-line">{{ item.description }}</td>
                             <td class="border border-black px-4 py-2 print:px-2 print:py-1">{{ item.quantity }}</td>
-                            <td class="border border-black px-4 py-2 print:px-2 print:py-1">{{ formatCurrency(item.unit_price) }}</td>
                             <td class="border border-black px-4 py-2 print:px-2 print:py-1">{{ item.supplier_signature || '' }}</td>
                         </tr>
                     </tbody>
@@ -120,13 +118,6 @@ const formatDate = (dateString) => {
     if (!dateString) return '';
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
-};
-
-const formatCurrency = (value) => {
-    return Number(value || 0).toLocaleString(undefined, {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-    });
 };
 
 const printDeliveryNote = () => {

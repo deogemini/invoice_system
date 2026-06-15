@@ -37,7 +37,6 @@
                             <tr>
                                 <th class="py-2 px-4 border-b text-left">Description</th>
                                 <th class="py-2 px-4 border-b text-center w-24">Qty</th>
-                                <th class="py-2 px-4 border-b text-right w-36">Price Per Unit</th>
                                 <th class="py-2 px-4 border-b text-left w-56">Sign of Supplier</th>
                                 <th class="py-2 px-4 border-b text-center w-16"></th>
                             </tr>
@@ -49,9 +48,6 @@
                                 </td>
                                 <td class="py-2 px-4 border-b text-center">
                                     <input v-model.number="item.quantity" type="number" min="1" required class="shadow appearance-none border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-center">
-                                </td>
-                                <td class="py-2 px-4 border-b text-right">
-                                    <input v-model.number="item.unit_price" type="number" min="0" step="0.01" class="shadow appearance-none border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-right">
                                 </td>
                                 <td class="py-2 px-4 border-b">
                                     <input v-model="item.supplier_signature" type="text" placeholder="Name or signature" class="shadow border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
