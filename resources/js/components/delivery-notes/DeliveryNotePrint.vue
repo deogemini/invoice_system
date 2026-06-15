@@ -120,7 +120,30 @@ const formatDate = (dateString) => {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 };
 
+const sanitizeFilenamePart = (value) => {
+    return String(value || '')
+        .replace(/[<>:"/\\|?*]+/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+};
+
+const deliveryNoteTitle = () => {
+    const number = sanitizeFilenamePart(deliveryNote.value?.number || deliveryNote.value?.id);
+    const customer = sanitizeFilenamePart(deliveryNote.value?.customer?.name);
+
+    return ['Delivery Note', number, customer].filter(Boolean).join(' - ');
+};
+
+const updateDocumentTitle = () => {
+    const title = deliveryNoteTitle();
+
+    if (title) {
+        document.title = title;
+    }
+};
+
 const printDeliveryNote = () => {
+    updateDocumentTitle();
     window.print();
 };
 
@@ -140,6 +163,7 @@ const hideLegacyPriceColumn = () => {
 
 onMounted(async () => {
     await fetchData();
+    updateDocumentTitle();
     nextTick(hideLegacyPriceColumn);
 });
 </script>

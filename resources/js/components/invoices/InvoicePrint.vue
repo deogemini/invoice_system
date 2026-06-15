@@ -171,12 +171,36 @@ const formatCurrency = (value) => {
 
 const selectedBankAccount = computed(() => invoice.value?.bank_account || bankAccounts.value[0] || null);
 
+const sanitizeFilenamePart = (value) => {
+    return String(value || '')
+        .replace(/[<>:"/\\|?*]+/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+};
+
+const invoiceTitle = () => {
+    const number = sanitizeFilenamePart(invoice.value?.number || invoice.value?.id);
+    const customer = sanitizeFilenamePart(invoice.value?.customer?.name);
+
+    return ['Invoice', number, customer].filter(Boolean).join(' - ');
+};
+
+const updateDocumentTitle = () => {
+    const title = invoiceTitle();
+
+    if (title) {
+        document.title = title;
+    }
+};
+
 const printInvoice = () => {
+    updateDocumentTitle();
     window.print();
 };
 
-onMounted(() => {
-    fetchData();
+onMounted(async () => {
+    await fetchData();
+    updateDocumentTitle();
 });
 </script>
 
