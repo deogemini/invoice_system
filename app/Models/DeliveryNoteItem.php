@@ -17,6 +17,7 @@ class DeliveryNoteItem extends Model
         'deleted_by',
         'delivery_note_id',
         'description',
+        'ctns',
         'quantity',
         'unit_price',
         'supplier_signature',

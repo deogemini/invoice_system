@@ -46,6 +46,7 @@ class DeliveryNoteController extends Controller
                 $deliveryNote->items()->create([
                     'user_id' => $ownerId,
                     'description' => $item['description'],
+                    'ctns' => $item['ctns'] ?? 0,
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'] ?? 0,
                     'supplier_signature' => $item['supplier_signature'] ?? null,
@@ -99,6 +100,7 @@ class DeliveryNoteController extends Controller
                 $deliveryNote->items()->create([
                     'user_id' => $ownerId,
                     'description' => $item['description'],
+                    'ctns' => $item['ctns'] ?? 0,
                     'quantity' => $item['quantity'],
                     'unit_price' => $item['unit_price'] ?? 0,
                     'supplier_signature' => $item['supplier_signature'] ?? null,
@@ -138,6 +140,7 @@ class DeliveryNoteController extends Controller
             'terms_and_conditions' => 'nullable|string',
             'items' => 'required|array|min:1',
             'items.*.description' => 'required|string',
+            'items.*.ctns' => 'nullable|integer|min:0',
             'items.*.quantity' => 'required|integer|min:1',
             'items.*.unit_price' => 'nullable|numeric|min:0',
             'items.*.supplier_signature' => 'nullable|string',

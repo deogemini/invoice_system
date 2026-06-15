@@ -46,6 +46,7 @@
                         <tr class="bg-white">
                             <th class="border border-black px-4 py-2 text-left w-12 print:px-2 print:py-1">S/N</th>
                             <th class="border border-black px-4 py-2 text-left print:px-2 print:py-1">DESCRIPTION</th>
+                            <th class="border border-black px-4 py-2 text-left w-20 print:px-2 print:py-1">CTNS</th>
                             <th class="border border-black px-4 py-2 text-left w-20 print:px-2 print:py-1">QTY</th>
                             <th class="border border-black px-4 py-2 text-left w-48 print:px-2 print:py-1">SIGN OF SUPPLIER</th>
                         </tr>
@@ -54,6 +55,7 @@
                         <tr v-for="(item, index) in deliveryNote.items" :key="item.id">
                             <td class="border border-black px-4 py-2 print:px-2 print:py-1">{{ index + 1 }}</td>
                             <td class="border border-black px-4 py-2 print:px-2 print:py-1 whitespace-pre-line">{{ item.description }}</td>
+                            <td class="border border-black px-4 py-2 print:px-2 print:py-1">{{ item.ctns || 0 }}</td>
                             <td class="border border-black px-4 py-2 print:px-2 print:py-1">{{ item.quantity }}</td>
                             <td class="border border-black px-4 py-2 print:px-2 print:py-1">{{ item.supplier_signature || '' }}</td>
                         </tr>
