@@ -87,6 +87,11 @@
                         </tr>
                     </tbody>
                 </table>
+
+                <div class="mt-4 border border-black px-4 py-3 text-sm print:text-xs">
+                    <span class="font-bold">Amount in words:</span>
+                    <span class="uppercase">{{ amountInWords }}</span>
+                </div>
             </div>
 
             <!-- Footer Section -->
@@ -178,6 +183,97 @@ const selectedBankAccount = computed(() => invoice.value?.bank_account || bankAc
 const priceBeforeVat = computed(() => {
     return Math.max(0, Number(invoice.value?.sub_total || 0) - Number(invoice.value?.discount || 0));
 });
+
+const amountInWords = computed(() => {
+    return `${numberToWords(Number(invoice.value?.total || 0))} only`;
+});
+
+const ones = [
+    '',
+    'one',
+    'two',
+    'three',
+    'four',
+    'five',
+    'six',
+    'seven',
+    'eight',
+    'nine',
+    'ten',
+    'eleven',
+    'twelve',
+    'thirteen',
+    'fourteen',
+    'fifteen',
+    'sixteen',
+    'seventeen',
+    'eighteen',
+    'nineteen',
+];
+
+const tens = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+
+const convertHundreds = (value) => {
+    const words = [];
+    const hundreds = Math.floor(value / 100);
+    const remainder = value % 100;
+
+    if (hundreds) {
+        words.push(`${ones[hundreds]} hundred`);
+    }
+
+    if (remainder >= 20) {
+        const ten = Math.floor(remainder / 10);
+        const one = remainder % 10;
+        words.push(one ? `${tens[ten]} ${ones[one]}` : tens[ten]);
+    } else if (remainder > 0) {
+        words.push(ones[remainder]);
+    }
+
+    return words.join(' ');
+};
+
+const integerToWords = (value) => {
+    if (value === 0) {
+        return 'zero';
+    }
+
+    const scales = [
+        { value: 1000000000000, label: 'trillion' },
+        { value: 1000000000, label: 'billion' },
+        { value: 1000000, label: 'million' },
+        { value: 1000, label: 'thousand' },
+        { value: 1, label: '' },
+    ];
+    const words = [];
+    let remaining = value;
+
+    scales.forEach((scale) => {
+        const chunk = Math.floor(remaining / scale.value);
+
+        if (!chunk) {
+            return;
+        }
+
+        words.push(`${convertHundreds(chunk)} ${scale.label}`.trim());
+        remaining %= scale.value;
+    });
+
+    return words.join(' ');
+};
+
+const numberToWords = (value) => {
+    const safeValue = Math.max(0, Number(value || 0));
+    const integerPart = Math.floor(safeValue);
+    const cents = Math.round((safeValue - integerPart) * 100);
+    const words = [integerToWords(integerPart)];
+
+    if (cents > 0) {
+        words.push(`and ${integerToWords(cents)} cents`);
+    }
+
+    return words.join(' ');
+};
 
 const sanitizeFilenamePart = (value) => {
     return String(value || '')
