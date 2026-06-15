@@ -41,7 +41,7 @@
             </div>
 
             <div class="p-8 print:p-4">
-                <table class="w-full border-collapse border border-black print:text-sm">
+                <table class="delivery-note-items-table w-full border-collapse border border-black print:text-sm">
                     <thead>
                         <tr class="bg-white">
                             <th class="border border-black px-4 py-2 text-left w-12 print:px-2 print:py-1">S/N</th>
@@ -87,7 +87,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { nextTick, ref, onMounted } from 'vue';
 import axios from 'axios';
 import { useRoute } from 'vue-router';
 
@@ -124,8 +124,23 @@ const printDeliveryNote = () => {
     window.print();
 };
 
-onMounted(() => {
-    fetchData();
+const hideLegacyPriceColumn = () => {
+    const table = document.querySelector('.delivery-note-items-table');
+    const headers = Array.from(table?.querySelectorAll('thead th') || []);
+    const priceIndex = headers.findIndex((header) => header.textContent.trim().toLowerCase() === 'price per unit');
+
+    if (priceIndex === -1) {
+        return;
+    }
+
+    table.querySelectorAll('tr').forEach((row) => {
+        row.children[priceIndex]?.remove();
+    });
+};
+
+onMounted(async () => {
+    await fetchData();
+    nextTick(hideLegacyPriceColumn);
 });
 </script>
 
