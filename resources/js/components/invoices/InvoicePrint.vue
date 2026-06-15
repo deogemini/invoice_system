@@ -74,6 +74,10 @@
                             <td class="border border-black px-4 py-2 font-bold print:px-2 print:py-1">{{ formatCurrency(invoice.discount) }}</td>
                         </tr>
                         <tr v-if="invoice.include_vat">
+                            <td colspan="4" class="border border-black px-4 py-2 text-right font-bold print:px-2 print:py-1">PRICE BEFORE VAT</td>
+                            <td class="border border-black px-4 py-2 font-bold print:px-2 print:py-1">{{ formatCurrency(priceBeforeVat) }}</td>
+                        </tr>
+                        <tr v-if="invoice.include_vat">
                             <td colspan="4" class="border border-black px-4 py-2 text-right font-bold print:px-2 print:py-1">VAT ({{ Number(invoice.vat_rate || 18).toFixed(0) }}%)</td>
                             <td class="border border-black px-4 py-2 font-bold print:px-2 print:py-1">{{ formatCurrency(invoice.vat_amount) }}</td>
                         </tr>
@@ -170,6 +174,10 @@ const formatCurrency = (value) => {
 };
 
 const selectedBankAccount = computed(() => invoice.value?.bank_account || bankAccounts.value[0] || null);
+
+const priceBeforeVat = computed(() => {
+    return Math.max(0, Number(invoice.value?.sub_total || 0) - Number(invoice.value?.discount || 0));
+});
 
 const sanitizeFilenamePart = (value) => {
     return String(value || '')

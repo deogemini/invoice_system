@@ -135,6 +135,10 @@
                         <input v-model="form.include_vat" type="checkbox" class="h-4 w-4 rounded">
                     </label>
                     <div v-if="form.include_vat" class="flex justify-between mb-2">
+                        <span class="font-bold">Price Before VAT:</span>
+                        <span>{{ taxableAmount.toFixed(2) }}</span>
+                    </div>
+                    <div v-if="form.include_vat" class="flex justify-between mb-2">
                         <span class="font-bold">VAT Amount:</span>
                         <span>{{ vatAmount.toFixed(2) }}</span>
                     </div>
