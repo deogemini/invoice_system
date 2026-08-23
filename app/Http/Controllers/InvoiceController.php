@@ -251,6 +251,13 @@ class InvoiceController extends Controller
 
         if ($request->has('status')) {
             $invoice->status = $request->status;
+
+            // Keep the amount-based totals consistent with the manually selected status.
+            if ($request->status === 'paid') {
+                $invoice->paid_amount = $invoice->total;
+            } elseif ($request->status === 'unpaid') {
+                $invoice->paid_amount = 0;
+            }
         }
 
         if ($request->has('tra_status')) {
@@ -260,7 +267,10 @@ class InvoiceController extends Controller
         $invoice->save();
         $logger->log('invoice.status_updated', $invoice, 'Invoice status updated.');
 
-        return response()->json(['message' => 'Invoice updated successfully']);
+        return response()->json([
+            'message' => 'Invoice updated successfully',
+            'invoice' => $invoice->fresh(),
+        ]);
     }
 
     /**

@@ -257,6 +257,7 @@ const toggleStatus = async (invoice) => {
     try {
         await axios.put(`/api/invoices/${invoice.id}`, { status: newStatus });
         invoice.status = newStatus;
+        invoice.paid_amount = newStatus === 'paid' ? invoice.total : 0;
     } catch (err) {
         alert('Failed to update status.');
         console.error(err);
