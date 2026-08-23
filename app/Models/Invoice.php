@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Builder;
+use App\Models\User;
 use App\Models\Concerns\TracksUserActivity;
 
 class Invoice extends Model
@@ -42,6 +44,15 @@ class Invoice extends Model
         'total' => 'decimal:2',
         'paid_amount' => 'decimal:2',
     ];
+
+    /**
+     * Invoices are private to the user who created them.
+     * Administrators must follow this rule as well.
+     */
+    public function scopeVisibleTo(Builder $query, User $user): Builder
+    {
+        return $query->where('created_by', $user->id);
+    }
 
     public function customer()
     {
