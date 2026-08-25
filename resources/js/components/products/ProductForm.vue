@@ -23,7 +23,7 @@
                 <label class="block text-gray-700 text-sm font-bold mb-2" for="unit_price">
                     Unit Price
                 </label>
-                <input v-model="form.unit_price" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" :class="{ 'border-red-500': errors.unit_price }" id="unit_price" type="number" step="0.01" placeholder="Unit Price" required>
+                <input v-model="form.unit_price" @focus="unformatPrice" @blur="formatPrice" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" :class="{ 'border-red-500': errors.unit_price }" id="unit_price" type="text" inputmode="decimal" placeholder="1,250,000.00" required>
                 <p v-if="errors.unit_price" class="text-red-500 text-xs italic">{{ errors.unit_price[0] }}</p>
             </div>
 
@@ -68,6 +68,19 @@ const errors = ref({});
 
 const isEditing = computed(() => !!props.id);
 
+const formatPrice = () => {
+    const value = String(form.value.unit_price ?? '').replace(/,/g, '');
+    if (value === '' || Number.isNaN(Number(value))) return;
+    form.value.unit_price = Number(value).toLocaleString('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+};
+
+const unformatPrice = () => {
+    form.value.unit_price = String(form.value.unit_price ?? '').replace(/,/g, '');
+};
+
 const fetchProduct = async () => {
     if (!isEditing.value) return;
     
@@ -75,6 +88,7 @@ const fetchProduct = async () => {
     try {
         const response = await axios.get(`/api/products/${props.id}`);
         form.value = response.data.product;
+        formatPrice();
     } catch (err) {
         error.value = 'Failed to load product details.';
         console.error(err);
@@ -90,9 +104,15 @@ const submitForm = async () => {
     
     try {
         if (isEditing.value) {
-            await axios.put(`/api/products/${props.id}`, form.value);
+            await axios.put(`/api/products/${props.id}`, {
+                ...form.value,
+                unit_price: String(form.value.unit_price).replace(/,/g, ''),
+            });
         } else {
-            await axios.post('/api/products', form.value);
+            await axios.post('/api/products', {
+                ...form.value,
+                unit_price: String(form.value.unit_price).replace(/,/g, ''),
+            });
         }
         router.push({ name: 'products.index' });
     } catch (err) {
