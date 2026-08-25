@@ -2,9 +2,11 @@
     <div class="container mx-auto p-4">
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-2xl font-bold">Products</h1>
-            <router-link :to="{ name: 'products.create' }" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                Add Product
-            </router-link>
+            <div class="flex gap-2">
+                <button @click="$refs.productFile.click()" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">Import Excel</button>
+                <input ref="productFile" type="file" accept=".xlsx,.xls,.csv" class="hidden" @change="importProducts">
+                <router-link :to="{ name: 'products.create' }" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Add Product</router-link>
+            </div>
         </div>
 
         <div v-if="loading" class="text-center py-4">
@@ -67,6 +69,22 @@ import axios from 'axios';
 const products = ref([]);
 const loading = ref(true);
 const error = ref(null);
+
+const importProducts = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+    const form = new FormData();
+    form.append('file', file);
+    try {
+        const response = await axios.post('/api/products-import', form);
+        alert(response.data.message + (response.data.errors?.length ? '\nSome rows were skipped.' : ''));
+        await fetchProducts();
+    } catch (err) {
+        alert(err.response?.data?.message || 'Failed to import products.');
+    } finally {
+        event.target.value = '';
+    }
+};
 
 const fetchProducts = async () => {
     loading.value = true;

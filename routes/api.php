@@ -32,6 +32,7 @@ Route::middleware(['web', 'auth:sanctum'])->group(function () {
 
     Route::apiResource('customers', CustomerController::class);
     Route::apiResource('products', ProductController::class);
+    Route::post('products-import', [ProductController::class, 'import']);
     Route::apiResource('invoices', InvoiceController::class);
     Route::post('invoices/{invoice}/payment', [InvoiceController::class, 'recordPayment']);
     Route::apiResource('delivery-notes', DeliveryNoteController::class);

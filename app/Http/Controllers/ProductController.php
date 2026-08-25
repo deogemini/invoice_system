@@ -6,9 +6,53 @@ use App\Models\Product;
 use App\Services\ActivityLogger;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ProductController extends Controller
 {
+    public function import(Request $request, ActivityLogger $logger)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        $spreadsheet = IOFactory::load($request->file('file')->getRealPath());
+        $rows = $spreadsheet->getActiveSheet()->toArray(null, true, true, true);
+        $headers = array_map(fn ($header) => strtolower(trim((string) $header)), array_shift($rows) ?: []);
+        $required = ['item_code', 'description', 'unit_price'];
+        if (array_diff($required, $headers)) {
+            return response()->json(['message' => 'The file must contain item_code, description and unit_price columns.'], 422);
+        }
+
+        $created = 0;
+        $errors = [];
+        foreach ($rows as $number => $row) {
+            $data = [];
+            foreach ($headers as $column => $header) {
+                $data[$header] = $row[$column] ?? null;
+            }
+            if (!array_filter($data, fn ($value) => $value !== null && trim((string) $value) !== '')) {
+                continue;
+            }
+            $validator = validator($data, [
+                'item_code' => 'required|string|unique:products,item_code',
+                'description' => 'required|string',
+                'unit_price' => 'required|numeric',
+            ]);
+            if ($validator->fails()) {
+                $errors[] = ['row' => $number + 2, 'errors' => $validator->errors()->all()];
+                continue;
+            }
+            $product = Product::create([
+                ...$validator->validated(),
+                'user_id' => $request->user()->id,
+            ]);
+            $logger->log('product.created', $product, 'Product imported.');
+            $created++;
+        }
+
+        return response()->json(['message' => "{$created} product(s) imported.", 'created' => $created, 'errors' => $errors]);
+    }
     /**
      * Display a listing of the resource.
      */
