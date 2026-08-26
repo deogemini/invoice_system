@@ -15,6 +15,13 @@
             <!-- Header Section -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="document_type">Document Type</label>
+                    <select v-model="form.document_type" id="document_type" required class="shadow border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="invoice">Invoice</option>
+                        <option value="quotation">Quotation</option>
+                    </select>
+                </div>
+                <div v-if="form.document_type === 'invoice'">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="customer">
                         Customer
                     </label>
@@ -174,7 +181,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch } from 'vue';
 import axios from 'axios';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -191,6 +198,7 @@ const isEditMode = computed(() => !!route.params.id);
 
 const form = ref({
     customer_id: '',
+    document_type: 'invoice',
     bank_account_id: '',
     date: new Date().toISOString().slice(0, 10),
     due_date: '',
@@ -201,6 +209,10 @@ const form = ref({
     items: [
         { product_id: '', description: '', unit_price: 0, quantity: 1 }
     ]
+});
+
+watch(() => form.value.document_type, (type) => {
+    if (type === 'quotation') form.value.bank_account_id = '';
 });
 
 const fetchCustomers = async () => {
@@ -244,7 +256,8 @@ const fetchInvoice = async () => {
 
         form.value = {
             customer_id: invoice.customer_id,
-            bank_account_id: invoice.bank_account_id || '',
+            document_type: invoice.document_type || 'invoice',
+            bank_account_id: invoice.document_type === 'quotation' ? '' : (invoice.bank_account_id || ''),
             date: invoice.date,
             due_date: invoice.due_date || '',
             reference: invoice.reference || '',

@@ -48,6 +48,7 @@ class InvoiceController extends Controller
             'items.*.unit_price' => 'required|numeric|min:0',
             'items.*.quantity' => 'required|integer|min:1',
             'user_id' => ['nullable', Rule::exists('users', 'id')->where('is_active', true)],
+            'document_type' => 'required|in:invoice,quotation',
         ]);
 
         $ownerId = $request->user()->isAdministrator()
@@ -85,8 +86,9 @@ class InvoiceController extends Controller
 
             $invoice = Invoice::create([
                 'user_id' => $ownerId,
+                'document_type' => $request->document_type,
                 'customer_id' => $request->customer_id,
-                'bank_account_id' => $request->input('bank_account_id') ?: null,
+                'bank_account_id' => $request->document_type === 'quotation' ? null : ($request->input('bank_account_id') ?: null),
                 'date' => $request->date,
                 'due_date' => $request->due_date,
                 'reference' => $request->reference,
@@ -100,7 +102,8 @@ class InvoiceController extends Controller
             ]);
 
             // Generate Invoice Number
-            $invoice->number = 'INV-' . str_pad($invoice->id, 5, '0', STR_PAD_LEFT);
+            $prefix = $request->document_type === 'quotation' ? 'QUO-' : 'INV-';
+            $invoice->number = $prefix . str_pad($invoice->id, 5, '0', STR_PAD_LEFT);
             $invoice->save();
 
             foreach ($items_data as $item_data) {
@@ -158,6 +161,7 @@ class InvoiceController extends Controller
                 'items.*.unit_price' => 'required|numeric|min:0',
                 'items.*.quantity' => 'required|integer|min:1',
                 'user_id' => ['nullable', Rule::exists('users', 'id')->where('is_active', true)],
+                'document_type' => 'sometimes|in:invoice,quotation',
             ]);
 
             $ownerId = $request->user()->isAdministrator()
@@ -194,9 +198,10 @@ class InvoiceController extends Controller
                 $total = $taxableAmount + $vatAmount;
 
                 $invoice->update([
+                    'document_type' => $request->input('document_type', $invoice->document_type),
                     'user_id' => $ownerId,
                     'customer_id' => $request->customer_id,
-                    'bank_account_id' => $request->input('bank_account_id') ?: null,
+                    'bank_account_id' => $request->input('document_type', $invoice->document_type) === 'quotation' ? null : ($request->input('bank_account_id') ?: null),
                     'date' => $request->date,
                     'due_date' => $request->due_date,
                     'reference' => $request->reference,

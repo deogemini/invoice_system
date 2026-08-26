@@ -18,6 +18,7 @@ class Invoice extends Model
         'updated_by',
         'deleted_by',
         'number',
+        'document_type',
         'customer_id',
         'bank_account_id',
         'date',
