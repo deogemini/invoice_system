@@ -21,7 +21,7 @@
                         <option value="quotation">Quotation</option>
                     </select>
                 </div>
-                <div v-if="form.document_type === 'invoice'">
+                <div>
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="customer">
                         Customer
                     </label>
@@ -55,7 +55,7 @@
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
                     <p class="text-xs text-gray-500 mt-1">Invoice Number will be auto-generated.</p>
                 </div>
-                <div>
+                <div v-if="form.document_type === 'invoice'">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="bank_account">
                         Bank Account to Use
                     </label>
