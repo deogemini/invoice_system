@@ -133,7 +133,7 @@
                         <span>{{ subTotal.toFixed(2) }}</span>
                     </div>
                     <div class="flex justify-between mb-2 items-center">
-                        <span class="font-bold">Discount:</span>
+                        <span class="font-bold">Deduction ({{ form.discount }}%):</span>
                         <input v-model.number="form.discount" type="number" step="0.01" min="0"
                             class="shadow appearance-none border rounded w-24 py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-right">
                     </div>
@@ -203,7 +203,7 @@ const form = ref({
     date: new Date().toISOString().slice(0, 10),
     due_date: '',
     reference: '',
-    discount: 0,
+    discount: 5,
     include_vat: false,
     terms_and_conditions: '',
     items: [
@@ -261,7 +261,9 @@ const fetchInvoice = async () => {
             date: invoice.date,
             due_date: invoice.due_date || '',
             reference: invoice.reference || '',
-            discount: Number(invoice.discount || 0),
+            discount: Number(invoice.sub_total || 0) > 0
+                ? (Number(invoice.discount || 0) / Number(invoice.sub_total)) * 100
+                : 5,
             include_vat: Boolean(invoice.include_vat),
             terms_and_conditions: invoice.terms_and_conditions || '',
             items: invoice.items && invoice.items.length
@@ -308,7 +310,11 @@ const grandTotal = computed(() => {
 });
 
 const taxableAmount = computed(() => {
-    return Math.max(0, subTotal.value - Number(form.value.discount || 0));
+    return Math.max(0, subTotal.value - discountAmount.value);
+});
+
+const discountAmount = computed(() => {
+    return Math.min(subTotal.value, subTotal.value * (Number(form.value.discount || 0) / 100));
 });
 
 const vatAmount = computed(() => {
@@ -321,10 +327,15 @@ const submitForm = async () => {
     errors.value = {};
 
     try {
+        const payload = {
+            ...form.value,
+            discount: discountAmount.value,
+        };
+
         if (isEditMode.value) {
-            await axios.put(`/api/invoices/${route.params.id}`, form.value);
+            await axios.put(`/api/invoices/${route.params.id}`, payload);
         } else {
-            await axios.post('/api/invoices', form.value);
+            await axios.post('/api/invoices', payload);
         }
 
         router.push({ name: 'invoices.index' });
