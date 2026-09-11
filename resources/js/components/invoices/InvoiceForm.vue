@@ -133,7 +133,7 @@
                         <span>{{ subTotal.toFixed(2) }}</span>
                     </div>
                     <div class="flex justify-between mb-2 items-center">
-                        <span class="font-bold">Deduction ({{ form.discount }}%):</span>
+                        <span class="font-bold">Withholding Tax ({{ form.discount }}%):</span>
                         <input v-model.number="form.discount" type="number" step="0.01" min="0"
                             class="shadow appearance-none border rounded w-24 py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline text-right">
                     </div>

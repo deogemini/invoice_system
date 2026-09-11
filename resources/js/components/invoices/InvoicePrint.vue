@@ -70,7 +70,7 @@
                             <td class="border border-black px-4 py-2 font-bold print:px-2 print:py-1">{{ formatCurrency(invoice.sub_total) }}</td>
                         </tr>
                         <tr v-if="invoice.discount > 0">
-                            <td colspan="4" class="border border-black px-4 py-2 text-right font-bold print:px-2 print:py-1">DISCOUNT</td>
+                            <td colspan="4" class="border border-black px-4 py-2 text-right font-bold print:px-2 print:py-1">WITHHOLDING TAX</td>
                             <td class="border border-black px-4 py-2 font-bold print:px-2 print:py-1">{{ formatCurrency(invoice.discount) }}</td>
                         </tr>
                         <tr v-if="invoice.include_vat">
