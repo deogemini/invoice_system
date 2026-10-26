@@ -82,7 +82,7 @@
                             <td class="border border-black px-4 py-2 font-bold print:px-2 print:py-1">{{ formatCurrency(invoice.vat_amount) }}</td>
                         </tr>
                         <tr>
-                            <td colspan="4" class="border border-black px-4 py-2 text-right font-bold print:px-2 print:py-1">VAT INCLUSIVE</td>
+                            <td colspan="4" class="border border-black px-4 py-2 text-right font-bold print:px-2 print:py-1">{{ invoice.include_vat ? 'VAT INCLUSIVE' : 'VAT EXCLUSIVE' }}</td>
                             <td class="border border-black px-4 py-2 font-bold print:px-2 print:py-1">{{ formatCurrency(invoice.total) }}</td>
                         </tr>
                     </tbody>
