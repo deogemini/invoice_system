@@ -11,6 +11,7 @@
                     <router-link :to="{ name: 'customers.index' }" class="hover:text-gray-300">Customers</router-link>
                     <router-link :to="{ name: 'products.index' }" class="hover:text-gray-300">Products</router-link>
                     <router-link :to="{ name: 'invoices.index' }" class="hover:text-gray-300">Invoices</router-link>
+                    <router-link :to="{ name: 'reports.withholding-tax' }" class="hover:text-gray-300">Tax Reports</router-link>
                     <router-link :to="{ name: 'delivery-notes.index' }" class="hover:text-gray-300">Delivery Notes</router-link>
                     <router-link :to="{ name: 'bankaccounts.index' }" class="hover:text-gray-300">Bank Accounts</router-link>
                     <router-link :to="{ name: 'settings.edit' }" class="hover:text-gray-300">Settings</router-link>

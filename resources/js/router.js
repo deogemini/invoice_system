@@ -20,6 +20,7 @@ import DeliveryNotePrint from './components/delivery-notes/DeliveryNotePrint.vue
 import BankAccountList from './components/bankaccounts/BankAccountList.vue';
 import BankAccountForm from './components/bankaccounts/BankAccountForm.vue';
 import CompanySettingForm from './components/settings/CompanySettingForm.vue';
+import WithholdingTaxReport from './components/reports/WithholdingTaxReport.vue';
 
 const routes = [
     {
@@ -144,6 +145,12 @@ const routes = [
         name: 'invoices.print',
         component: InvoicePrint,
         props: true,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/reports/withholding-tax',
+        name: 'reports.withholding-tax',
+        component: WithholdingTaxReport,
         meta: { requiresAuth: true },
     },
     {
